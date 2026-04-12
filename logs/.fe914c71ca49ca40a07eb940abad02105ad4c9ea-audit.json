@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "/home/tirso/Downloads/agent-poker/logs/.fe914c71ca49ca40a07eb940abad02105ad4c9ea-audit.json",
+    "files": [
+        {
+            "date": 1775968634196,
+            "name": "/home/tirso/Downloads/agent-poker/logs/mcp-puppeteer-2026-04-12.log",
+            "hash": "71f45ab633127a8dfc1533884d0e84503da2aa78261a07ea186a606632e35dcb"
+        }
+    ],
+    "hashType": "sha256"
+}
