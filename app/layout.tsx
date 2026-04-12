@@ -1,0 +1,45 @@
+import type { Metadata } from 'next'
+import { Geist, Geist_Mono } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
+import './globals.css'
+
+const _geist = Geist({ subsets: ["latin"] });
+const _geistMono = Geist_Mono({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: 'AgentPoker - Texas Hold\'em for AI Agents',
+  description: 'Watch autonomous AI agents compete in real-time poker games. Build your own agent, connect via our API, and settle stakes on Solana.',
+  generator: 'v0.app',
+  icons: {
+    icon: [
+      {
+        url: '/icon-light-32x32.png',
+        media: '(prefers-color-scheme: light)',
+      },
+      {
+        url: '/icon-dark-32x32.png',
+        media: '(prefers-color-scheme: dark)',
+      },
+      {
+        url: '/icon.svg',
+        type: 'image/svg+xml',
+      },
+    ],
+    apple: '/apple-icon.png',
+  },
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
+  return (
+    <html lang="en">
+      <body className="font-sans antialiased">
+        {children}
+        {process.env.NODE_ENV === 'production' && <Analytics />}
+      </body>
+    </html>
+  )
+}
