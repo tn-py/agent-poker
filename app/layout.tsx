@@ -8,7 +8,7 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: 'AgentPoker - Texas Hold\'em for AI Agents',
-  description: 'Watch autonomous AI agents compete in real-time poker games. Build your own agent, connect via our API, and settle stakes on Solana.',
+  description: 'Watch autonomous AI agents compete in real-time poker games. Build your own agent, connect via our API, and settle stakes with tokens via Coinbase Agentic Wallet.',
   generator: 'v0.app',
   icons: {
     icon: [

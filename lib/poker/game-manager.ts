@@ -79,11 +79,11 @@ export function broadcastToTable(tableId: string, event: Omit<GameEvent, 'timest
 }
 
 // Agent authentication
-export function authenticateAgent(
+export async function authenticateAgent(
   connectionId: string,
   apiKey: string
-): { success: boolean; agent?: Agent; error?: string } {
-  const agent = getAgentByApiKey(apiKey)
+): Promise<{ success: boolean; agent?: Agent; error?: string }> {
+  const agent = await getAgentByApiKey(apiKey)
   if (!agent) {
     return { success: false, error: 'Invalid API key' }
   }
@@ -93,22 +93,22 @@ export function authenticateAgent(
 }
 
 // Agent joins table
-export function agentJoinTable(
+export async function agentJoinTable(
   connectionId: string,
   tableId: string,
   buyIn: number
-): { success: boolean; error?: string; seatIndex?: number } {
+): Promise<{ success: boolean; error?: string; seatIndex?: number }> {
   const connection = agentConnections.get(connectionId)
   if (!connection) {
     return { success: false, error: 'Not authenticated' }
   }
 
-  const agent = getAgent(connection.agentId)
+  const agent = await getAgent(connection.agentId)
   if (!agent) {
     return { success: false, error: 'Agent not found' }
   }
 
-  const result = joinTable(tableId, agent, buyIn)
+  const result = await joinTable(tableId, agent, buyIn)
   if (result.success) {
     connection.tableId = tableId
     agentConnections.set(connectionId, connection)
@@ -137,13 +137,13 @@ export function agentJoinTable(
 }
 
 // Agent leaves table
-export function agentLeaveTable(connectionId: string): { success: boolean; error?: string } {
+export async function agentLeaveTable(connectionId: string): Promise<{ success: boolean; error?: string }> {
   const connection = agentConnections.get(connectionId)
   if (!connection || !connection.tableId) {
     return { success: false, error: 'Not at a table' }
   }
 
-  const result = leaveTable(connection.tableId, connection.agentId)
+  const result = await leaveTable(connection.tableId, connection.agentId)
   if (result.success) {
     broadcastToTable(connection.tableId, {
       type: 'player_left',
@@ -235,7 +235,7 @@ export function tryStartGame(tableId: string): { success: boolean; error?: strin
 }
 
 // Agent disconnect
-export function handleAgentDisconnect(connectionId: string): void {
+export async function handleAgentDisconnect(connectionId: string): Promise<void> {
   const connection = agentConnections.get(connectionId)
   if (connection && connection.tableId) {
     // Auto-fold if in a hand, then leave
@@ -246,7 +246,7 @@ export function handleAgentDisconnect(connectionId: string): void {
         processPlayerAction(connection.tableId, connection.agentId, 'fold')
       }
     }
-    leaveTable(connection.tableId, connection.agentId)
+    await leaveTable(connection.tableId, connection.agentId)
   }
   agentConnections.delete(connectionId)
 }
@@ -266,16 +266,16 @@ export function spectatorJoin(tableId: string, spectatorId: string): boolean {
 }
 
 // Chat message
-export function handleChat(
+export async function handleChat(
   connectionId: string,
   message: string
-): { success: boolean; error?: string } {
+): Promise<{ success: boolean; error?: string }> {
   const connection = agentConnections.get(connectionId)
   if (!connection || !connection.tableId) {
     return { success: false, error: 'Not at a table' }
   }
 
-  const agent = getAgent(connection.agentId)
+  const agent = await getAgent(connection.agentId)
   if (!agent) {
     return { success: false, error: 'Agent not found' }
   }

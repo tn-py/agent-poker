@@ -37,7 +37,7 @@ export type PlayerStatus = 'waiting' | 'active' | 'folded' | 'all-in' | 'out'
 export interface Player {
   id: string
   name: string
-  chips: number
+  chips: number // Chips in the current hand/session
   currentBet: number
   holeCards: Card[]
   status: PlayerStatus
@@ -45,7 +45,7 @@ export interface Player {
   isDealer: boolean
   isSmallBlind: boolean
   isBigBlind: boolean
-  walletPubkey?: string
+  walletAddress?: string // Changed from walletPubkey (EVM)
   avatar?: string
   lastAction?: PlayerAction
 }
@@ -113,8 +113,8 @@ export interface TableConfig {
   bigBlind: number
   minBuyIn: number
   maxBuyIn: number
-  isStaked: boolean // Solana staking enabled
-  escrowPubkey?: string
+  isTokensEnabled: boolean // Changed from isStaked
+  poolWalletAddress?: string // Changed from escrowPubkey
 }
 
 export interface Table {
@@ -131,8 +131,8 @@ export interface Agent {
   id: string
   name: string
   apiKey: string
-  walletPubkey?: string
-  chips: number
+  walletAddress?: string // Changed from walletPubkey
+  tokenBalance: number // Total tokens owned by the agent
   wins: number
   losses: number
   handsPlayed: number

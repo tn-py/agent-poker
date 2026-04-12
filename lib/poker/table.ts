@@ -1,11 +1,13 @@
 import { Table, TableConfig, Player, GameState, Agent } from './types'
 import { PokerGame, createGame } from './game'
+import { supabase } from '../supabase'
 
-// In-memory storage for tables and games
+// In-memory storage for tables and games (real-time state)
 const tables = new Map<string, Table>()
 const games = new Map<string, PokerGame>()
-const agents = new Map<string, Agent>()
-const apiKeyToAgent = new Map<string, string>()
+
+// We still keep a small cache of active agents for quick lookups during game actions
+const activeAgents = new Map<string, Agent>()
 
 // Create a new table
 export function createTable(config: TableConfig): Table {
@@ -32,11 +34,11 @@ export function getAllTables(): Table[] {
 }
 
 // Add player to table
-export function joinTable(
+export async function joinTable(
   tableId: string,
   agent: Agent,
   buyIn: number
-): { success: boolean; error?: string; seatIndex?: number } {
+): Promise<{ success: boolean; error?: string; seatIndex?: number }> {
   const table = tables.get(tableId)
   if (!table) {
     return { success: false, error: 'Table not found' }
@@ -58,6 +60,33 @@ export function joinTable(
     return { success: false, error: 'Already at this table' }
   }
 
+  // If table is tokens-enabled, check agent's balance in Supabase
+  if (table.config.isTokensEnabled) {
+    const { data: dbAgent, error } = await supabase
+      .from('agents')
+      .select('token_balance')
+      .eq('id', agent.id)
+      .single()
+
+    if (error || !dbAgent) {
+      return { success: false, error: 'Could not verify token balance' }
+    }
+
+    if (dbAgent.token_balance < buyIn) {
+      return { success: false, error: `Insufficient tokens. Have ${dbAgent.token_balance}, need ${buyIn}` }
+    }
+
+    // Deduct tokens from agent's balance for this session
+    const { error: updateError } = await supabase
+      .from('agents')
+      .update({ token_balance: dbAgent.token_balance - buyIn })
+      .eq('id', agent.id)
+
+    if (updateError) {
+      return { success: false, error: 'Failed to reserve tokens for buy-in' }
+    }
+  }
+
   // Find open seat
   const takenSeats = new Set(table.players.map((p) => p.seatIndex))
   let seatIndex = 0
@@ -76,7 +105,7 @@ export function joinTable(
     isDealer: false,
     isSmallBlind: false,
     isBigBlind: false,
-    walletPubkey: agent.walletPubkey,
+    walletAddress: agent.walletAddress,
     avatar: agent.avatar,
   }
 
@@ -87,10 +116,10 @@ export function joinTable(
 }
 
 // Remove player from table
-export function leaveTable(
+export async function leaveTable(
   tableId: string,
   playerId: string
-): { success: boolean; error?: string } {
+): Promise<{ success: boolean; error?: string }> {
   const table = tables.get(tableId)
   if (!table) {
     return { success: false, error: 'Table not found' }
@@ -106,6 +135,24 @@ export function leaveTable(
     const player = table.players[playerIndex]
     if (player.status !== 'folded' && player.status !== 'out') {
       return { success: false, error: 'Cannot leave during an active hand' }
+    }
+  }
+
+  const player = table.players[playerIndex]
+  
+  // If table is tokens-enabled, return remaining chips to tokens
+  if (table.config.isTokensEnabled) {
+    const { data: dbAgent, error } = await supabase
+      .from('agents')
+      .select('token_balance')
+      .eq('id', playerId)
+      .single()
+
+    if (!error && dbAgent) {
+      await supabase
+        .from('agents')
+        .update({ token_balance: dbAgent.token_balance + player.chips })
+        .eq('id', playerId)
     }
   }
 
@@ -189,10 +236,16 @@ export function processPlayerAction(
     if (game.getState().phase === 'complete') {
       // Update player chips in table
       const gameState = game.getState()
+      
+      // Update stats in Supabase after each hand
       for (const gp of gameState.players) {
         const tp = table.players.find((p) => p.id === gp.id)
         if (tp) {
           tp.chips = gp.chips
+          
+          // Check if player won
+          const isWinner = gameState.winners?.some(w => w.playerId === gp.id)
+          updateAgentStats(gp.id, !!isWinner)
         }
       }
 
@@ -219,62 +272,139 @@ export function processPlayerAction(
 }
 
 // Agent management
-export function registerAgent(
+export async function registerAgent(
   name: string,
-  walletPubkey?: string,
+  walletAddress?: string,
   description?: string
-): Agent {
-  const id = crypto.randomUUID()
+): Promise<Agent> {
   const apiKey = `pk_${crypto.randomUUID().replace(/-/g, '')}`
 
-  const agent: Agent = {
-    id,
-    name,
-    apiKey,
-    walletPubkey,
-    chips: 0,
-    wins: 0,
-    losses: 0,
-    handsPlayed: 0,
-    createdAt: Date.now(),
-    description,
+  const { data, error } = await supabase
+    .from('agents')
+    .insert({
+      name,
+      wallet_address: walletAddress,
+      api_key: apiKey,
+      description,
+      token_balance: 1000, // Welcome gift of 1000 tokens (10 USDC value)
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error registering agent:', error)
+    throw new Error('Failed to register agent')
   }
 
-  agents.set(id, agent)
-  apiKeyToAgent.set(apiKey, id)
+  const agent: Agent = {
+    id: data.id,
+    name: data.name,
+    apiKey: data.api_key,
+    walletAddress: data.wallet_address,
+    tokenBalance: data.token_balance,
+    wins: data.wins,
+    losses: data.losses,
+    handsPlayed: data.hands_played,
+    createdAt: new Date(data.created_at).getTime(),
+    description: data.description,
+    avatar: data.avatar,
+  }
 
   return agent
 }
 
-export function getAgent(id: string): Agent | undefined {
-  return agents.get(id)
+export async function getAgent(id: string): Promise<Agent | undefined> {
+  const { data, error } = await supabase
+    .from('agents')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (error || !data) return undefined
+
+  return {
+    id: data.id,
+    name: data.name,
+    apiKey: data.api_key,
+    walletAddress: data.wallet_address,
+    tokenBalance: data.token_balance,
+    wins: data.wins,
+    losses: data.losses,
+    handsPlayed: data.hands_played,
+    createdAt: new Date(data.created_at).getTime(),
+    description: data.description,
+    avatar: data.avatar,
+  }
 }
 
-export function getAgentByApiKey(apiKey: string): Agent | undefined {
-  const agentId = apiKeyToAgent.get(apiKey)
-  if (!agentId) return undefined
-  return agents.get(agentId)
+export async function getAgentByApiKey(apiKey: string): Promise<Agent | undefined> {
+  const { data, error } = await supabase
+    .from('agents')
+    .select('*')
+    .eq('api_key', apiKey)
+    .single()
+
+  if (error || !data) return undefined
+
+  return {
+    id: data.id,
+    name: data.name,
+    apiKey: data.api_key,
+    walletAddress: data.wallet_address,
+    tokenBalance: data.token_balance,
+    wins: data.wins,
+    losses: data.losses,
+    handsPlayed: data.hands_played,
+    createdAt: new Date(data.created_at).getTime(),
+    description: data.description,
+    avatar: data.avatar,
+  }
 }
 
-export function getAllAgents(): Agent[] {
-  return Array.from(agents.values())
+export async function getAllAgents(): Promise<Agent[]> {
+  const { data, error } = await supabase
+    .from('agents')
+    .select('*')
+    .order('wins', { ascending: false })
+
+  if (error || !data) return []
+
+  return data.map(d => ({
+    id: d.id,
+    name: d.name,
+    apiKey: d.api_key,
+    walletAddress: d.wallet_address,
+    tokenBalance: d.token_balance,
+    wins: d.wins,
+    losses: d.losses,
+    handsPlayed: d.hands_played,
+    createdAt: new Date(d.created_at).getTime(),
+    description: d.description,
+    avatar: d.avatar,
+  }))
 }
 
-export function updateAgentStats(
+export async function updateAgentStats(
   agentId: string,
   won: boolean,
   handsPlayed: number = 1
-): void {
-  const agent = agents.get(agentId)
-  if (!agent) return
+): Promise<void> {
+  const { data: current } = await supabase
+    .from('agents')
+    .select('wins, losses, hands_played')
+    .eq('id', agentId)
+    .single()
 
-  agent.handsPlayed += handsPlayed
-  if (won) {
-    agent.wins++
-  } else {
-    agent.losses++
-  }
-  agents.set(agentId, agent)
+  if (!current) return
+
+  await supabase
+    .from('agents')
+    .update({
+      hands_played: current.hands_played + handsPlayed,
+      wins: won ? current.wins + 1 : current.wins,
+      losses: won ? current.losses : current.losses + 1
+    })
+    .eq('id', agentId)
 }
 
 // Add spectator to table
@@ -312,7 +442,7 @@ export function initializeTables(): void {
     bigBlind: 20,
     minBuyIn: 500,
     maxBuyIn: 2000,
-    isStaked: false,
+    isTokensEnabled: false,
   })
 
   createTable({
@@ -323,18 +453,19 @@ export function initializeTables(): void {
     bigBlind: 100,
     minBuyIn: 2500,
     maxBuyIn: 10000,
-    isStaked: false,
+    isTokensEnabled: false,
   })
 
   createTable({
     id: 'table-3',
-    name: 'High Roller - Solana Staked',
+    name: 'High Roller - Token Stakes',
     maxPlayers: 4,
     smallBlind: 100,
     bigBlind: 200,
     minBuyIn: 5000,
     maxBuyIn: 20000,
-    isStaked: true,
+    isTokensEnabled: true,
+    poolWalletAddress: process.env.NEXT_PUBLIC_HOUSE_WALLET_ADDRESS,
   })
 }
 
