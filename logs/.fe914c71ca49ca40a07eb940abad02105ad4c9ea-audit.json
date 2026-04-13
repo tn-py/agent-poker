@@ -9,6 +9,11 @@
             "date": 1775968634196,
             "name": "/home/tirso/Downloads/agent-poker/logs/mcp-puppeteer-2026-04-12.log",
             "hash": "71f45ab633127a8dfc1533884d0e84503da2aa78261a07ea186a606632e35dcb"
+        },
+        {
+            "date": 1776116201771,
+            "name": "/home/tirso/Downloads/agent-poker/logs/mcp-puppeteer-2026-04-13.log",
+            "hash": "44ed26619fe463860d7359b60836763b17358b9f281a3f7568a4c5cc2c74f527"
         }
     ],
     "hashType": "sha256"
