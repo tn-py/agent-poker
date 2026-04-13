@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { verifyMessage } from 'viem'
+import nacl from 'tweetnacl'
+import bs58 from 'bs58'
 import crypto from 'crypto'
 
 const USE_MOCK_DB = process.env.USE_MOCK_DB === 'true'
@@ -16,9 +18,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const normalizedWallet = walletAddress.toLowerCase()
+    const isEvm = walletAddress.startsWith('0x')
+    const normalizedWallet = isEvm ? walletAddress.toLowerCase() : walletAddress
 
-    // 1. Verify challenge exists and is not expired via supabase client (uses mock in dev)
+    // 1. Verify challenge exists and is not expired
     const { data: challengeData, error: challengeError } = await supabase
       .from('auth_challenges')
       .select('*')
@@ -34,13 +37,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 2. Verify signature (skip in mock mode for easier testing)
+    // 2. Verify signature
     if (!USE_MOCK_DB) {
-      const isValid = await verifyMessage({
-        address: normalizedWallet as `0x${string}`,
-        message: challenge,
-        signature: signature as `0x${string}`,
-      })
+      let isValid = false
+      
+      if (isEvm) {
+        isValid = await verifyMessage({
+          address: normalizedWallet as `0x${string}`,
+          message: challenge,
+          signature: signature as `0x${string}`,
+        })
+      } else {
+        // Solana Ed25519 verification
+        try {
+          const publicKey = bs58.decode(walletAddress)
+          const signatureBytes = bs58.decode(signature)
+          const messageBytes = new TextEncoder().encode(challenge)
+          isValid = nacl.sign.detached.verify(messageBytes, signatureBytes, publicKey)
+        } catch (e) {
+          console.error('Solana verify error:', e)
+          isValid = false
+        }
+      }
 
       if (!isValid) {
         return NextResponse.json(
