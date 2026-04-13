@@ -15,14 +15,15 @@ export async function GET(request: NextRequest) {
     }
 
     const challenge = `Poker Agent Auth: ${crypto.randomUUID()}`
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString()
     
-    // Store challenge in Supabase
+    // Store challenge via supabase client (which uses mock in dev mode)
     const { error } = await supabase
       .from('auth_challenges')
       .insert({
         wallet_address: walletAddress,
         challenge: challenge,
-        expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString() // 5 minutes
+        expires_at: expiresAt,
       })
 
     if (error) {

@@ -5,6 +5,7 @@ import { registerAgent, getAllAgents, getAgentByApiKey } from '@/lib/poker/game-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    console.log('[API] Registering agent:', body.name)
     const { name, walletPubkey, description } = body
 
     if (!name || typeof name !== 'string' || name.length < 2) {
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const agent = registerAgent(name, walletPubkey, description)
+    const agent = await registerAgent(name, walletPubkey, description)
 
     return NextResponse.json({
       id: agent.id,

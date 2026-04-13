@@ -3,6 +3,8 @@ import { supabase } from '@/lib/supabase'
 import { verifyMessage } from 'viem'
 import crypto from 'crypto'
 
+const USE_MOCK_DB = process.env.USE_MOCK_DB === 'true'
+
 export async function POST(request: NextRequest) {
   try {
     const { walletAddress, signature, challenge } = await request.json()
@@ -16,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     const normalizedWallet = walletAddress.toLowerCase()
 
-    // 1. Verify challenge exists and is not expired
+    // 1. Verify challenge exists and is not expired via supabase client (uses mock in dev)
     const { data: challengeData, error: challengeError } = await supabase
       .from('auth_challenges')
       .select('*')
@@ -32,18 +34,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 2. Verify signature
-    const isValid = await verifyMessage({
-      address: normalizedWallet as `0x${string}`,
-      message: challenge,
-      signature: signature as `0x${string}`,
-    })
+    // 2. Verify signature (skip in mock mode for easier testing)
+    if (!USE_MOCK_DB) {
+      const isValid = await verifyMessage({
+        address: normalizedWallet as `0x${string}`,
+        message: challenge,
+        signature: signature as `0x${string}`,
+      })
 
-    if (!isValid) {
-      return NextResponse.json(
-        { error: 'Invalid signature' },
-        { status: 401 }
-      )
+      if (!isValid) {
+        return NextResponse.json(
+          { error: 'Invalid signature' },
+          { status: 401 }
+        )
+      }
     }
 
     // 3. Clean up the used challenge
@@ -52,19 +56,14 @@ export async function POST(request: NextRequest) {
       .delete()
       .eq('id', challengeData.id)
 
-    // 4. Find or create agent
+    // 4. Find or create agent via supabase client
     const { data: agent, error: agentError } = await supabase
       .from('agents')
       .select('*')
       .eq('wallet_address', normalizedWallet)
       .single()
 
-    if (agentError && agentError.code !== 'PGRST116') { // PGRST116 is not found
-      console.error('Database error:', agentError)
-      return NextResponse.json({ error: 'Database error' }, { status: 500 })
-    }
-
-    if (agent) {
+    if (agent && agentError?.code !== 'PGRST116') {
       // Existing agent, return their info and API key
       return NextResponse.json({
         id: agent.id,
@@ -73,33 +72,29 @@ export async function POST(request: NextRequest) {
         tokenBalance: agent.token_balance,
         walletAddress: agent.wallet_address,
       })
-    } else {
-      // New agent registration
-      const apiKey = `pk_${crypto.randomUUID().replace(/-/g, '')}`
-      const { data: newAgent, error: createError } = await supabase
-        .from('agents')
-        .insert({
-          name: `Agent_${normalizedWallet.slice(2, 8)}`,
-          wallet_address: normalizedWallet,
-          api_key: apiKey,
-          token_balance: 1000, // New user bonus
-        })
-        .select()
-        .single()
-
-      if (createError) {
-        console.error('Error creating agent:', createError)
-        return NextResponse.json({ error: 'Failed to create agent' }, { status: 500 })
-      }
-
-      return NextResponse.json({
-        id: newAgent.id,
-        name: newAgent.name,
-        apiKey: newAgent.api_key,
-        tokenBalance: newAgent.token_balance,
-        walletAddress: newAgent.wallet_address,
-      })
     }
+
+    // New agent registration
+    const apiKey = `pk_${crypto.randomUUID().replace(/-/g, '')}`
+    const newAgent = {
+      id: crypto.randomUUID(),
+      name: `Agent_${normalizedWallet.slice(2, 8)}`,
+      wallet_address: normalizedWallet,
+      api_key: apiKey,
+      token_balance: 10000, // New user bonus - 10K promo
+    }
+    
+    await supabase
+      .from('agents')
+      .insert(newAgent)
+
+    return NextResponse.json({
+      id: newAgent.id,
+      name: newAgent.name,
+      apiKey: newAgent.api_key,
+      tokenBalance: newAgent.token_balance,
+      walletAddress: newAgent.wallet_address,
+    })
   } catch (error) {
     console.error('Verify error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

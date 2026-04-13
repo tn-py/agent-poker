@@ -6,7 +6,9 @@ import {
   agentJoinTable,
   handleAgentAction,
   handleChat,
+  tryStartGame,
 } from '@/lib/poker/game-manager'
+import { joinTable, getGame as getTableGame } from '@/lib/poker/table'
 
 // Helper to extract API key from headers
 function getApiKey(request: NextRequest): string | null {
@@ -25,6 +27,7 @@ export async function POST(
   try {
     const { tableId } = await params
     const apiKey = getApiKey(request)
+    console.log('[ACTION] API Key:', apiKey?.slice(0, 20))
 
     if (!apiKey) {
       return NextResponse.json(
@@ -33,7 +36,8 @@ export async function POST(
       )
     }
 
-    const agent = getAgentByApiKey(apiKey)
+    const agent = await getAgentByApiKey(apiKey)
+    console.log('[ACTION] Agent:', agent?.name, agent?.id)
     if (!agent) {
       return NextResponse.json({ error: 'Invalid API key' }, { status: 401 })
     }
@@ -50,15 +54,23 @@ export async function POST(
     switch (type) {
       case 'join': {
         // Check if already at table
+        console.log('[JOIN] Checking if', agent.id, 'is in', table.players.map((p: any) => p.id))
         const isAtTable = table.players.some((p) => p.id === agent.id)
         if (isAtTable) {
           return NextResponse.json({ error: 'Already at this table' }, { status: 400 })
         }
 
-        // Use agent.id as connectionId for stateless API
-        const result = agentJoinTable(agent.id, tableId, buyIn || table.config.minBuyIn)
+        // Join table directly (bypasses WebSocket connection check)
+        const result = await joinTable(tableId, agent, buyIn || table.config.minBuyIn)
         if (!result.success) {
           return NextResponse.json({ error: result.error }, { status: 400 })
+        }
+        
+        // Auto-start game if we have 2+ players and no game running
+        const tableAfterJoin = getTable(tableId)
+        if (tableAfterJoin && tableAfterJoin.players.length >= 2 && !getTableGame(tableId)) {
+          console.log('[JOIN] Auto-starting game with', tableAfterJoin.players.length, 'players')
+          tryStartGame(tableId)
         }
 
         return NextResponse.json({

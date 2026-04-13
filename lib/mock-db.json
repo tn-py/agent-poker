@@ -1,0 +1,199 @@
+{
+  "agents": {
+    "0xwallet1wje8ez": {
+      "id": "c21c40f1-3de5-4ea2-8cb4-98cff1818b99",
+      "name": "Agent1-wje8ez",
+      "wallet_address": "0xWallet1wje8ez",
+      "api_key": "pk_d34bcf0ae7d1495a984884c8dcbffe14",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T01:51:38.475Z"
+    },
+    "0xwallet2wje8ez": {
+      "id": "b13c1509-7fc3-44bd-8ffe-7d82c1ec60a5",
+      "name": "Agent2-wje8ez",
+      "wallet_address": "0xWallet2wje8ez",
+      "api_key": "pk_a3585c876024424db68cbe9bdccc1b26",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T01:51:38.481Z"
+    },
+    "0xwallet1wjkumq": {
+      "id": "7ea99e42-126b-4f9f-b5c4-7403ebf94e4d",
+      "name": "Agent1-wjkumq",
+      "wallet_address": "0xWallet1wjkumq",
+      "api_key": "pk_9f3f7b5e6425467eab3b4e6d8cdb6215",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T01:56:47.038Z"
+    },
+    "0xwallet2wjkumq": {
+      "id": "8c46806e-54c5-4a80-b709-d698028f42a8",
+      "name": "Agent2-wjkumq",
+      "wallet_address": "0xWallet2wjkumq",
+      "api_key": "pk_57e33b4122ee42289fc199651e36e36f",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T01:56:47.044Z"
+    },
+    "0xwallet1wjmkm5": {
+      "id": "02dc25e0-630b-43be-a395-5d1c61421d61",
+      "name": "Agent1-wjmkm5",
+      "wallet_address": "0xWallet1wjmkm5",
+      "api_key": "pk_e4b1e00b99a44f6d82fc960961d00cdd",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T01:58:07.371Z"
+    },
+    "0xwallet2wjmkm5": {
+      "id": "84cb3341-0206-48e0-ba8b-6680309b9e10",
+      "name": "Agent2-wjmkm5",
+      "wallet_address": "0xWallet2wjmkm5",
+      "api_key": "pk_3578e077cab842a89ec1b1fe7bbcc2d2",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T01:58:07.376Z"
+    },
+    "0xwallet1wjosr1": {
+      "id": "2aa3e13b-a1af-46f1-aa7b-fcf3736c7a03",
+      "name": "Agent1-wjosr1",
+      "wallet_address": "0xWallet1wjosr1",
+      "api_key": "pk_c910ea57c517442da67897f870affe14",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T01:59:51.225Z"
+    },
+    "0xwallet2wjosr1": {
+      "id": "459d48f7-032b-4436-8fc2-b94041045b1e",
+      "name": "Agent2-wjosr1",
+      "wallet_address": "0xWallet2wjosr1",
+      "api_key": "pk_42b65f522e39419a8f0a2c7d54a48b75",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T01:59:51.230Z"
+    },
+    "0xwallet1wjtnhg": {
+      "id": "e2a5742e-fb2e-4336-9c30-bf276efef1f1",
+      "name": "Agent1-wjtnhg",
+      "wallet_address": "0xWallet1wjtnhg",
+      "api_key": "pk_4374e516b20946e2aeb8fd4cac37f958",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T02:03:37.680Z"
+    },
+    "0xwallet2wjtnhg": {
+      "id": "ef5707e4-b9d5-453d-bd42-9218f0fde400",
+      "name": "Agent2-wjtnhg",
+      "wallet_address": "0xWallet2wjtnhg",
+      "api_key": "pk_497a09d9efba46f79f779b7dfb4fdba1",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T02:03:37.684Z"
+    },
+    "0xwallet1wjvfw4": {
+      "id": "0cffcc05-60e9-4992-a18f-81338beb2318",
+      "name": "Agent1-wjvfw4",
+      "wallet_address": "0xWallet1wjvfw4",
+      "api_key": "pk_eddd418ba0b245109a7444c739185767",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T02:05:01.151Z"
+    },
+    "0xwallet2wjvfw4": {
+      "id": "a096cb6a-c354-445e-9b48-e1422eb5482d",
+      "name": "Agent2-wjvfw4",
+      "wallet_address": "0xWallet2wjvfw4",
+      "api_key": "pk_cbdfc5298431423fb46ccbb2e7850c9f",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T02:05:01.156Z"
+    }
+  },
+  "challenges": {},
+  "apiKeys": {
+    "pk_d34bcf0ae7d1495a984884c8dcbffe14": {
+      "id": "c21c40f1-3de5-4ea2-8cb4-98cff1818b99",
+      "name": "Agent1-wje8ez",
+      "wallet_address": "0xWallet1wje8ez",
+      "api_key": "pk_d34bcf0ae7d1495a984884c8dcbffe14",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T01:51:38.475Z"
+    },
+    "pk_a3585c876024424db68cbe9bdccc1b26": {
+      "id": "b13c1509-7fc3-44bd-8ffe-7d82c1ec60a5",
+      "name": "Agent2-wje8ez",
+      "wallet_address": "0xWallet2wje8ez",
+      "api_key": "pk_a3585c876024424db68cbe9bdccc1b26",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T01:51:38.481Z"
+    },
+    "pk_9f3f7b5e6425467eab3b4e6d8cdb6215": {
+      "id": "7ea99e42-126b-4f9f-b5c4-7403ebf94e4d",
+      "name": "Agent1-wjkumq",
+      "wallet_address": "0xWallet1wjkumq",
+      "api_key": "pk_9f3f7b5e6425467eab3b4e6d8cdb6215",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T01:56:47.038Z"
+    },
+    "pk_57e33b4122ee42289fc199651e36e36f": {
+      "id": "8c46806e-54c5-4a80-b709-d698028f42a8",
+      "name": "Agent2-wjkumq",
+      "wallet_address": "0xWallet2wjkumq",
+      "api_key": "pk_57e33b4122ee42289fc199651e36e36f",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T01:56:47.044Z"
+    },
+    "pk_e4b1e00b99a44f6d82fc960961d00cdd": {
+      "id": "02dc25e0-630b-43be-a395-5d1c61421d61",
+      "name": "Agent1-wjmkm5",
+      "wallet_address": "0xWallet1wjmkm5",
+      "api_key": "pk_e4b1e00b99a44f6d82fc960961d00cdd",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T01:58:07.371Z"
+    },
+    "pk_3578e077cab842a89ec1b1fe7bbcc2d2": {
+      "id": "84cb3341-0206-48e0-ba8b-6680309b9e10",
+      "name": "Agent2-wjmkm5",
+      "wallet_address": "0xWallet2wjmkm5",
+      "api_key": "pk_3578e077cab842a89ec1b1fe7bbcc2d2",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T01:58:07.376Z"
+    },
+    "pk_c910ea57c517442da67897f870affe14": {
+      "id": "2aa3e13b-a1af-46f1-aa7b-fcf3736c7a03",
+      "name": "Agent1-wjosr1",
+      "wallet_address": "0xWallet1wjosr1",
+      "api_key": "pk_c910ea57c517442da67897f870affe14",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T01:59:51.225Z"
+    },
+    "pk_42b65f522e39419a8f0a2c7d54a48b75": {
+      "id": "459d48f7-032b-4436-8fc2-b94041045b1e",
+      "name": "Agent2-wjosr1",
+      "wallet_address": "0xWallet2wjosr1",
+      "api_key": "pk_42b65f522e39419a8f0a2c7d54a48b75",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T01:59:51.230Z"
+    },
+    "pk_4374e516b20946e2aeb8fd4cac37f958": {
+      "id": "e2a5742e-fb2e-4336-9c30-bf276efef1f1",
+      "name": "Agent1-wjtnhg",
+      "wallet_address": "0xWallet1wjtnhg",
+      "api_key": "pk_4374e516b20946e2aeb8fd4cac37f958",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T02:03:37.680Z"
+    },
+    "pk_497a09d9efba46f79f779b7dfb4fdba1": {
+      "id": "ef5707e4-b9d5-453d-bd42-9218f0fde400",
+      "name": "Agent2-wjtnhg",
+      "wallet_address": "0xWallet2wjtnhg",
+      "api_key": "pk_497a09d9efba46f79f779b7dfb4fdba1",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T02:03:37.684Z"
+    },
+    "pk_eddd418ba0b245109a7444c739185767": {
+      "id": "0cffcc05-60e9-4992-a18f-81338beb2318",
+      "name": "Agent1-wjvfw4",
+      "wallet_address": "0xWallet1wjvfw4",
+      "api_key": "pk_eddd418ba0b245109a7444c739185767",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T02:05:01.151Z"
+    },
+    "pk_cbdfc5298431423fb46ccbb2e7850c9f": {
+      "id": "a096cb6a-c354-445e-9b48-e1422eb5482d",
+      "name": "Agent2-wjvfw4",
+      "wallet_address": "0xWallet2wjvfw4",
+      "api_key": "pk_cbdfc5298431423fb46ccbb2e7850c9f",
+      "token_balance": 1000,
+      "created_at": "2026-04-13T02:05:01.156Z"
+    }
+  }
+}
