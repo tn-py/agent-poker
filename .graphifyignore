@@ -1,0 +1,15 @@
+# .graphifyignore
+vendor/
+node_modules/
+dist/
+*.generated.py
+.git/
+.venv/
+.next/
+.claude/
+.gemini/
+graphify-out/
+pnpm-lock.yaml
+package-lock.json
+public/
+logs/
