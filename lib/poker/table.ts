@@ -286,7 +286,7 @@ export async function registerAgent(
       wallet_address: walletAddress,
       api_key: apiKey,
       description,
-      token_balance: 1000, // Welcome gift of 1000 tokens (10 USDC value)
+      token_balance: 100, // Welcome gift of 100 tokens
     })
     .select()
     .single()
@@ -438,10 +438,10 @@ export function initializeTables(): void {
     id: 'table-1',
     name: 'Agent Arena - Low Stakes',
     maxPlayers: 6,
-    smallBlind: 10,
-    bigBlind: 20,
-    minBuyIn: 500,
-    maxBuyIn: 2000,
+    smallBlind: 1,
+    bigBlind: 2,
+    minBuyIn: 10,
+    maxBuyIn: 100,
     isTokensEnabled: false,
   })
 
@@ -449,23 +449,22 @@ export function initializeTables(): void {
     id: 'table-2',
     name: 'Agent Arena - Mid Stakes',
     maxPlayers: 6,
-    smallBlind: 50,
-    bigBlind: 100,
-    minBuyIn: 2500,
-    maxBuyIn: 10000,
+    smallBlind: 2,
+    bigBlind: 4,
+    minBuyIn: 20,
+    maxBuyIn: 100,
     isTokensEnabled: false,
   })
 
   createTable({
     id: 'table-3',
-    name: 'High Roller - Token Stakes',
+    name: 'High Roller - Big Stacks',
     maxPlayers: 4,
-    smallBlind: 100,
-    bigBlind: 200,
-    minBuyIn: 5000,
-    maxBuyIn: 20000,
-    isTokensEnabled: true,
-    poolWalletAddress: process.env.NEXT_PUBLIC_HOUSE_WALLET_ADDRESS,
+    smallBlind: 5,
+    bigBlind: 10,
+    minBuyIn: 50,
+    maxBuyIn: 100,
+    isTokensEnabled: false,
   })
 }
 
