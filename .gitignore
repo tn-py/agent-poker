@@ -28,9 +28,14 @@ node_modules
 .DS_Store
 .vercel
 
+# TypeScript build info
+tsconfig.tsbuildinfo
+
+# Next.js generated types (auto-created on build/dev)
+next-env.d.ts
+
 # Venv
 .venv/
-
 
 # Graphify
 graphify-out/

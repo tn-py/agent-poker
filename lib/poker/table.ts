@@ -9,6 +9,19 @@ const games = new Map<string, PokerGame>()
 // We still keep a small cache of active agents for quick lookups during game actions
 const activeAgents = new Map<string, Agent>()
 
+// Clear a table — resets players, status, and removes the active game
+export function clearTable(tableId: string): boolean {
+  const table = tables.get(tableId)
+  if (!table) return false
+  table.players = []
+  table.spectators = []
+  table.status = 'waiting'
+  table.currentGame = null
+  tables.set(tableId, table)
+  games.delete(tableId)
+  return true
+}
+
 // Create a new table
 export function createTable(config: TableConfig): Table {
   const table: Table = {

@@ -12,26 +12,43 @@ const MOCK_DB_PATH = path.join(process.cwd(), 'lib', 'mock-db.json')
 let dbCache: { agents: Record<string, any>; challenges: Record<string, any>; apiKeys: Record<string, any> } | null = null
 let lastLoadTime = 0
 
-function loadDb(): { agents: Record<string, any>; challenges: Record<string, any>; apiKeys: Record<string, any> } {
+function loadDb(): { agents: Record<string, any>; auth_challenges: Record<string, any>; apiKeys: Record<string, any> } {
   try {
     // Reload if cache is stale (older than 100ms)
     const now = Date.now()
     if (!dbCache || now - lastLoadTime > 100) {
-      const data = fs.readFileSync(MOCK_DB_PATH, 'utf-8')
-      dbCache = JSON.parse(data)
+      // Try to read from filesystem, fall back to empty if it fails (serverless)
+      try {
+        const data = fs.readFileSync(MOCK_DB_PATH, 'utf-8')
+        dbCache = JSON.parse(data)
+        // Backward compatibility: if old format has 'challenges', rename to 'auth_challenges'
+        if (dbCache.challenges && !dbCache.auth_challenges) {
+          dbCache.auth_challenges = dbCache.challenges
+          delete dbCache.challenges
+        }
+      } catch (fsError) {
+        // Serverless environment or file doesn't exist
+        dbCache = { agents: {}, auth_challenges: {}, apiKeys: {} }
+      }
       lastLoadTime = now
     }
     return dbCache!
   } catch (e) {
-    return { agents: {}, challenges: {}, apiKeys: {} }
+    return { agents: {}, auth_challenges: {}, apiKeys: {} }
   }
 }
 
-function saveDb(db: { agents: Record<string, any>; challenges: Record<string, any>; apiKeys: Record<string, any> }) {
+function saveDb(db: { agents: Record<string, any>; auth_challenges: Record<string, any>; apiKeys: Record<string, any> }) {
   try {
     dbCache = db
     lastLoadTime = Date.now()
-    fs.writeFileSync(MOCK_DB_PATH, JSON.stringify(db, null, 2))
+    // Try to save to filesystem, but don't fail if it doesn't work (serverless)
+    try {
+      fs.writeFileSync(MOCK_DB_PATH, JSON.stringify(db, null, 2))
+    } catch (fsError) {
+      // In serverless, just keep in memory
+      console.log('[MOCK] Running in serverless mode, data kept in memory only')
+    }
   } catch (e) {
     console.error('[MOCK] Failed to save:', e)
   }

@@ -8,7 +8,25 @@ import {
   handleChat,
   tryStartGame,
 } from '@/lib/poker/game-manager'
-import { joinTable, getGame as getTableGame } from '@/lib/poker/table'
+import { joinTable, getGame as getTableGame, processPlayerAction } from '@/lib/poker/table'
+
+// Debounced game-start timers — wait 2 s after the last join so all agents
+// that are staggered-starting have time to sit down before the hand begins.
+const pendingGameStarts = new Map<string, ReturnType<typeof setTimeout>>()
+
+function scheduleGameStart(tableId: string): void {
+  const existing = pendingGameStarts.get(tableId)
+  if (existing) clearTimeout(existing)
+  const timer = setTimeout(() => {
+    pendingGameStarts.delete(tableId)
+    if (!getTableGame(tableId)) {
+      const t = getTable(tableId)
+      console.log('[JOIN] Debounced game start with', t?.players.length, 'players')
+      tryStartGame(tableId)
+    }
+  }, 2000)
+  pendingGameStarts.set(tableId, timer)
+}
 
 // Helper to extract API key from headers
 function getApiKey(request: NextRequest): string | null {
@@ -66,11 +84,11 @@ export async function POST(
           return NextResponse.json({ error: result.error }, { status: 400 })
         }
         
-        // Auto-start game if we have 2+ players and no game running
+        // Schedule a debounced game start so multiple agents joining in quick
+        // succession all get included before the first hand is dealt.
         const tableAfterJoin = getTable(tableId)
         if (tableAfterJoin && tableAfterJoin.players.length >= 2 && !getTableGame(tableId)) {
-          console.log('[JOIN] Auto-starting game with', tableAfterJoin.players.length, 'players')
-          tryStartGame(tableId)
+          scheduleGameStart(tableId)
         }
 
         return NextResponse.json({
@@ -96,8 +114,8 @@ export async function POST(
           )
         }
 
-        // Use agent.id as connectionId
-        const result = handleAgentAction(agent.id, action, amount)
+        // Use processPlayerAction directly (HTTP agents have no WebSocket connectionId)
+        const result = processPlayerAction(tableId, agent.id, action, amount)
         if (!result.success) {
           return NextResponse.json({ error: result.error }, { status: 400 })
         }
@@ -154,7 +172,7 @@ export async function GET(
       )
     }
 
-    const agent = getAgentByApiKey(apiKey)
+    const agent = await getAgentByApiKey(apiKey)
     if (!agent) {
       return NextResponse.json({ error: 'Invalid API key' }, { status: 401 })
     }
@@ -185,7 +203,8 @@ export async function GET(
 
     const gameState = game.getStateForPlayer(agent.id)
     const currentPlayer = game.getCurrentPlayer()
-    const isMyTurn = currentPlayer?.id === agent.id
+    const isActivePhase = gameState.phase !== 'complete' && gameState.phase !== 'showdown' && gameState.phase !== 'waiting'
+    const isMyTurn = isActivePhase && currentPlayer?.id === agent.id
 
     return NextResponse.json({
       table: {

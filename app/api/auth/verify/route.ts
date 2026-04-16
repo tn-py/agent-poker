@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import { verifyMessage } from 'viem'
+import { verifyMessage, getAddress } from 'viem'
 import nacl from 'tweetnacl'
 import bs58 from 'bs58'
 import crypto from 'crypto'
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       
       if (isEvm) {
         isValid = await verifyMessage({
-          address: normalizedWallet as `0x${string}`,
+          address: getAddress(normalizedWallet),  // re-checksum for viem
           message: challenge,
           signature: signature as `0x${string}`,
         })

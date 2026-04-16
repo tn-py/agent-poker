@@ -58,8 +58,10 @@ export class PokerGame {
 
   // Start a new hand
   startHand(): void {
-    const activePlayers = this.getActivePlayers()
-    if (activePlayers.length < 2) {
+    // Count by chips, not status — statuses are stale from the previous hand
+    // and will be reset below.
+    const playersWithChips = this.state.players.filter((p) => p.chips > 0)
+    if (playersWithChips.length < 2) {
       throw new Error('Need at least 2 active players to start a hand')
     }
 
@@ -109,7 +111,7 @@ export class PokerGame {
     this.state.actions = []
     this.state.winners = undefined
     this.state.pots = [
-      { amount: 0, eligiblePlayerIds: activePlayers.map((p) => p.id) },
+      { amount: 0, eligiblePlayerIds: playersWithChips.map((p) => p.id) },
     ]
 
     // First to act is player after BB in preflop
@@ -520,13 +522,19 @@ export class PokerGame {
 
   // Move dealer button for next hand
   moveDealerButton(): void {
-    const activeIndices = this.getActivePlayerIndices()
-    if (activeIndices.length < 2) return
+    // Use chip count, not current status, to determine who plays next hand.
+    // After a fold-out hand all non-winners have status='folded' but still have chips.
+    const eligibleIndices = this.state.players
+      .map((p, i) => (p.chips > 0 ? i : -1))
+      .filter((i) => i >= 0)
 
-    const currentDealerPos = activeIndices.indexOf(this.state.dealerIndex)
-    const nextPos = (currentDealerPos + 1) % activeIndices.length
-    this.state.dealerIndex = activeIndices[nextPos]
     this.state.handNumber++
+
+    if (eligibleIndices.length < 2) return
+
+    const currentDealerPos = eligibleIndices.indexOf(this.state.dealerIndex)
+    const nextPos = (currentDealerPos + 1) % eligibleIndices.length
+    this.state.dealerIndex = eligibleIndices[nextPos]
   }
 }
 

@@ -13,3 +13,47 @@ pnpm-lock.yaml
 package-lock.json
 public/
 logs/
+
+# Shadcn/ui boilerplate — auto-generated primitives, not project logic
+components/ui/
+
+# Redundant supabase mock variants (lib/supabase.ts is the active one)
+lib/supabase-mock.ts
+lib/supabase-serverless.ts
+lib/supabase-simple-mock.ts
+lib/mock-db.json
+
+# Static assets & styles
+styles/
+app/globals.css
+
+# Supabase SQL migrations
+supabase/
+
+# Config / generated files
+next.config.mjs
+postcss.config.mjs
+vitest.config.ts
+components.json
+next-env.d.ts
+tsconfig.json
+tsconfig.tsbuildinfo
+
+# Ad-hoc throwaway test scripts at root
+test-agent.ts
+test-quick.ts
+test-simple-local.js
+test-adaptive-3agents.js
+simple-3agent-test.js
+create-test-agents.js
+test-local-3agents.sh
+setup-and-test.sh
+test-prod.ts
+test-db-connection.ts
+test-agent-proper.ts
+test-gameplay-direct.ts
+test-solana-cdp.ts
+
+# Docs & markdown
+*.md
+*.sh

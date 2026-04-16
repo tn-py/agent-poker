@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase
       .from('auth_challenges')
       .insert({
-        wallet_address: walletAddress,
+        wallet_address: normalizedWallet,
         challenge: challenge,
         expires_at: expiresAt,
       })
